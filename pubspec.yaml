@@ -1,0 +1,43 @@
+name: my_cash
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.3
+  flutter_svg: ^2.1.0
+  intl: ^0.17.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo/logop.png"
+
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logo/logo_app.png
+    - assets/icons/money.svg
+    - assets/icons/payment.svg
+    - assets/icons/setting.svg
+    - assets/icons/add.svg
+    - assets/icons/trash.svg
+
+  fonts:
+    - family: MiFuente
+      fonts:
+        - asset: assets/fonts/regular.ttf
+
+
