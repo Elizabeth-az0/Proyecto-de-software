@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:my_cash/componentes/gastos/gastos.dart';
+import 'package:my_cash/database/resumen_gastos.dart';
 
 class OpcionesRapidas extends StatelessWidget {
   const OpcionesRapidas({super.key});
@@ -16,8 +17,9 @@ class OpcionesRapidas extends StatelessWidget {
           icono: 'assets/icons/payment.svg',
           texto: 'Resumen\nde gastos',
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Resumen en construcción 🛠')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ResumenGastos()),
             );
           },
         ),
@@ -68,7 +70,7 @@ class BotonOpcion extends StatelessWidget {
         width: 100,
         height: 120,
         decoration: BoxDecoration(
-          color: const Color(0xFFAEEBC1),
+          color: const Color(0xFF9DD8AF),
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
             BoxShadow(

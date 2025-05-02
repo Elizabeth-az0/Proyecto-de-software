@@ -4,7 +4,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 class GastoTotalCard extends StatelessWidget {
   final double monto;
 
-  const GastoTotalCard({super.key, required this.monto});
+  const GastoTotalCard({
+    super.key,
+    required this.monto,
+  }); // Paréntesis de constructor corregido
 
   @override
   Widget build(BuildContext context) {
@@ -12,26 +15,30 @@ class GastoTotalCard extends StatelessWidget {
       width: 250,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFD4F4E4),
+        color: const Color(0xFFC8EAD2),
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ), // Coma añadida aquí
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
             'Gasto total',
             style: TextStyle(
               fontSize: 28,
-              color: Colors.black87,
               fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 6),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
                 'assets/icons/money.svg',

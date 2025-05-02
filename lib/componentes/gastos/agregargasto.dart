@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+// ignore: unnecessary_import
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:my_cash/database/gastos_db.dart';
+import 'package:my_cash/componentes/event_bus.dart';
 
 class AgregarGasto extends StatefulWidget {
   const AgregarGasto({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AgregarGastoState createState() => _AgregarGastoState();
 }
 
@@ -15,6 +19,7 @@ class _AgregarGastoState extends State<AgregarGasto> {
   final _fechaController = TextEditingController();
   String _categoria = 'Comida';
   DateTime _fecha = DateTime.now();
+  final _formKey = GlobalKey<FormState>();
 
   final List<String> _categorias = [
     'Comida',
@@ -25,29 +30,6 @@ class _AgregarGastoState extends State<AgregarGasto> {
     'Otros',
   ];
 
-  // Variables para personalizar colores y bordes
-  final Color _backgroundColor = Color(0xFFD4F4E4); // Fondo de la app
-  final Color _inputFieldColor = Color(
-    0xFFE3F5E8,
-  ); // Color del fondo de los campos de texto
-  final Color _buttonColor = Color(0xFF9DD8AF); // Color de fondo del botón
-  final Color _textColor = Colors.black; // Color de los textos
-  final Color _labelTextColor =
-      Colors.grey; // Color de los textos de las etiquetas
-  final OutlineInputBorder _inputBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(10)),
-    borderSide: BorderSide(color: const Color(0xFFE3F5E8), width: 1.5),
-  );
-
-  // Nuevas variables para personalizar el dropdown
-  final Color _dropdownBackgroundColor = Color(
-    0xFFF5FFFA,
-  ); // Color de fondo del menú desplegable
-  final Color _dropdownItemColor = Color(
-    0xFFE3F5E8,
-  ); // Color de fondo de cada ítem
-
-  // Mapa de íconos para cada categoría
   final Map<String, IconData> _categoriaIconos = {
     'Comida': Icons.restaurant,
     'Entretenimiento': Icons.movie,
@@ -64,6 +46,50 @@ class _AgregarGastoState extends State<AgregarGasto> {
   }
 
   @override
+  void dispose() {
+    _tituloController.dispose();
+    _costoController.dispose();
+    _fechaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _fecha,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _fecha) {
+      setState(() {
+        _fecha = picked;
+        _fechaController.text = DateFormat('yyyy-MM-dd').format(_fecha);
+      });
+    }
+  }
+
+  Future<void> _mostrarAlertaLimiteExcedido() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Límite Excedido'),
+          content: const Text(
+              'No puedes agregar este gasto porque el total de gastos no puede superar \$9999.'),
+          actions: [
+            TextButton(
+              child: const Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -76,252 +102,195 @@ class _AgregarGastoState extends State<AgregarGasto> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: _backgroundColor,
+        backgroundColor: const Color(0xFFD4F4E4),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              'Título del gasto',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: _textColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _tituloController,
-              decoration: InputDecoration(
-                labelText: 'Título',
-                labelStyle: TextStyle(color: _labelTextColor),
-                filled: true,
-                fillColor: _inputFieldColor,
-                border: _inputBorder,
-                enabledBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(
-                    color: const Color(0xFF0e2517),
-                    width: 2.0,
-                  ),
-                ),
-                focusedBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                'Título del gasto',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Costo',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: _textColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _costoController,
-              decoration: InputDecoration(
-                labelText: '\$\$\$',
-                labelStyle: TextStyle(color: _labelTextColor),
-                filled: true,
-                fillColor: _inputFieldColor,
-                border: _inputBorder,
-                enabledBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(
-                    color: const Color(0xFF0e2517),
-                    width: 2.0,
-                  ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _tituloController,
+                decoration: InputDecoration(
+                  labelText: 'Título',
+                  filled: true,
+                  fillColor: const Color(0xFFE3F5E8),
+                  border: OutlineInputBorder(),
                 ),
-                focusedBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingresa un título';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Costo',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Categoría',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: _textColor,
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _costoController,
+                decoration: InputDecoration(
+                  labelText: '\$0.00',
+                  filled: true,
+                  fillColor: const Color(0xFFE3F5E8),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingresa un monto';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Ingresa un número válido';
+                  }
+                  final double monto = double.parse(value);
+                  if (monto <= 0) {
+                    return 'El monto debe ser mayor a cero';
+                  }
+                  if (monto > 9999) {
+                    return 'El monto no puede ser mayor a \$9999';
+                  }
+                  return null;
+                },
               ),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _categoria,
-              dropdownColor: _dropdownBackgroundColor,
-              icon: Icon(Icons.arrow_drop_down, color: _textColor),
-              iconSize: 30,
-              elevation: 4,
-              style: TextStyle(color: _textColor, fontSize: 16.0),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: _inputFieldColor,
-                border: _inputBorder,
-                enabledBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(
-                    color: const Color(0xFF0e2517),
-                    width: 2.0,
-                  ),
-                ),
-                focusedBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+              const SizedBox(height: 16),
+              Text(
+                'Categoría',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _categoria = newValue!;
-                });
-              },
-              items:
-                  _categorias.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: MouseRegion(
-                        onHover: (_) => setState(() {}),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _dropdownItemColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _categoriaIconos[value],
-                                color: _textColor,
-                                size: 24.0,
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                value,
-                                style: TextStyle(
-                                  color: _textColor,
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-              selectedItemBuilder: (BuildContext context) {
-                return _categorias.map<Widget>((String value) {
-                  return Container(
-                    alignment: Alignment.center,
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _categoria,
+                icon: const Icon(Icons.arrow_drop_down),
+                elevation: 4,
+                style: const TextStyle(color: Colors.black, fontSize: 16.0),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFFE3F5E8),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _categoria = newValue!;
+                  });
+                },
+                items: _categorias.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           _categoriaIconos[value],
-                          color: _textColor,
-                          size: 24.0,
+                          color: Colors.black,
                         ),
-                        SizedBox(width: 20),
-                        Text(
-                          value,
-                          style: TextStyle(
-                            color: _textColor,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        const SizedBox(width: 10),
+                        Text(value),
                       ],
                     ),
                   );
-                }).toList();
-              },
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Fecha',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: _textColor,
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _fechaController,
-              decoration: InputDecoration(
-                labelText: 'YYYY-MM-DD',
-                labelStyle: TextStyle(color: _labelTextColor),
-                filled: true,
-                fillColor: _inputFieldColor,
-                border: _inputBorder,
-                enabledBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(
-                    color: const Color(0xFF0e2517),
-                    width: 2.0,
+              const SizedBox(height: 16),
+              Text(
+                'Fecha',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _fechaController,
+                decoration: InputDecoration(
+                  labelText: 'YYYY-MM-DD',
+                  filled: true,
+                  fillColor: const Color(0xFFE3F5E8),
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.calendar_today),
+                    onPressed: () => _selectDate(context),
                   ),
                 ),
-                focusedBorder: _inputBorder.copyWith(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
-                ),
-              ),
-              keyboardType: TextInputType.datetime,
-              onChanged: (String value) {
-                setState(() {
-                  try {
-                    _fecha = DateFormat('yyyy-MM-dd').parseStrict(value);
-                  } catch (e) {
-                    // Si la fecha no es válida, mantenemos la fecha original
+                keyboardType: TextInputType.datetime,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingresa una fecha';
                   }
-                });
-              },
-            ),
-            const SizedBox(height: 90),
-            Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final titulo = _tituloController.text;
-                  final costo = double.tryParse(_costoController.text) ?? 0.0;
-                  if (titulo.isEmpty || costo <= 0.0) return;
-
-                  final gasto = {
-                    'titulo': titulo,
-                    'costo': costo,
-                    'categoria': _categoria,
-                    'fecha': DateFormat('yyyy-MM-dd').format(_fecha),
-                  };
-
-                  await GastosDB.instance.insertarGasto(gasto);
-                  Navigator.pop(context);
+                  try {
+                    DateFormat('yyyy-MM-dd').parseStrict(value);
+                  } catch (e) {
+                    return 'Ingresa una fecha válida (YYYY-MM-DD)';
+                  }
+                  return null;
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _buttonColor,
-                  foregroundColor: const Color(
-                    0xFF0E2517,
-                  ), // Cambia el color del texto del botón
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 10,
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 35,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                child: const Text('Guardar'),
               ),
-            ),
-          ],
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      final titulo = _tituloController.text;
+                      final costo = double.parse(_costoController.text);
+
+                      final totalActual =
+                          await GastosDB.instance.obtenerTotalGastos();
+
+                      if (totalActual + costo > 9999) {
+                        await _mostrarAlertaLimiteExcedido();
+                        return;
+                      }
+
+                      final gasto = {
+                        'titulo': titulo,
+                        'costo': costo,
+                        'categoria': _categoria,
+                        'fecha': DateFormat('yyyy-MM-dd').format(_fecha),
+                      };
+
+                      await GastosDB.instance.insertarGasto(gasto);
+
+                      // Notificar a todas las pantallas
+                      EventBus().notifyGastoAgregado();
+
+                      if (mounted) {
+                        // ignore: use_build_context_synchronously
+                        Navigator.pop(context, true);
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF9DD8AF),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                    textStyle: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  child: const Text('GUARDAR'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
