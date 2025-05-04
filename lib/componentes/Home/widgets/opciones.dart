@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:my_cash/componentes/Home/widgets/mas_opciones.dart';
 import 'package:my_cash/componentes/gastos/gastos.dart';
 import 'package:my_cash/database/resumen_gastos.dart';
 
@@ -27,10 +28,11 @@ class OpcionesRapidas extends StatelessWidget {
           icono: 'assets/icons/setting.svg',
           texto: 'Más opciones',
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Opciones avanzadas próximamente 📦'),
-              ),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const MasOpciones()), // Navega a la nueva pantalla
             );
           },
         ),

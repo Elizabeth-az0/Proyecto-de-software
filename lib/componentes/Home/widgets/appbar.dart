@@ -22,7 +22,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: TextStyle(
                 fontSize: 35,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Color(0xDD000000),
               ),
             ),
             Image.asset('assets/logo/logo_app.png', width: 80, height: 80),
