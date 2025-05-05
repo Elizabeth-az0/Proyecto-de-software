@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:my_cash/componentes/Home/widgets/mas_opciones.dart';
-import 'package:my_cash/componentes/gastos/gastos.dart';
-import 'package:my_cash/database/resumen_gastos.dart';
+import 'package:MyCash/componentes/home/widgets/mas_opciones.dart';
+import 'package:MyCash/componentes/gastos/gastos.dart';
+import 'package:MyCash/database/resumen_gastos.dart';
 
+/// Widget que muestra opciones rápidas de navegación en la pantalla principal
+/// 
+/// Incluye botones para:
+/// - Resumen de gastos
+/// - Más opciones
+/// - Añadir nuevos gastos
 class OpcionesRapidas extends StatelessWidget {
   const OpcionesRapidas({super.key});
 
@@ -11,9 +17,10 @@ class OpcionesRapidas extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 16,
-      runSpacing: 16,
+      spacing: 16, // Espacio horizontal entre elementos
+      runSpacing: 16, // Espacio vertical entre líneas
       children: [
+        // Botón para resumen de gastos
         BotonOpcion(
           icono: 'assets/icons/payment.svg',
           texto: 'Resumen\nde gastos',
@@ -24,18 +31,20 @@ class OpcionesRapidas extends StatelessWidget {
             );
           },
         ),
+        
+        // Botón para más opciones
         BotonOpcion(
           icono: 'assets/icons/setting.svg',
           texto: 'Más opciones',
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const MasOpciones()), // Navega a la nueva pantalla
+              MaterialPageRoute(builder: (context) => const MasOpciones()),
             );
           },
         ),
+        
+        // Botón para añadir gastos
         BotonOpcion(
           icono: 'assets/icons/add.svg',
           texto: 'Añadir\ngastos',
@@ -51,10 +60,13 @@ class OpcionesRapidas extends StatelessWidget {
   }
 }
 
+/// Widget personalizado para botones de opción rápida
+/// 
+/// Muestra un icono SVG con texto debajo, en un contenedor con sombra
 class BotonOpcion extends StatelessWidget {
-  final String icono;
-  final String texto;
-  final VoidCallback onTap;
+  final String icono; // Ruta del icono SVG
+  final String texto; // Texto a mostrar (puede contener \n para saltos de línea)
+  final VoidCallback onTap; // Función a ejecutar al hacer tap
 
   const BotonOpcion({
     super.key,
@@ -72,13 +84,13 @@ class BotonOpcion extends StatelessWidget {
         width: 100,
         height: 120,
         decoration: BoxDecoration(
-          color: const Color(0xFF9DD8AF),
+          color: const Color(0xFF9DD8AF), // Color de fondo del botón
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
-              offset: Offset(0, 4),
+              offset: Offset(0, 4), // Sombra con desplazamiento hacia abajo
             ),
           ],
         ),
@@ -86,16 +98,19 @@ class BotonOpcion extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Icono SVG
             SvgPicture.asset(
               icono,
               width: 36,
               height: 36,
               colorFilter: const ColorFilter.mode(
-                Colors.black,
+                Colors.black, // Color del icono
                 BlendMode.srcIn,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 8), // Espacio entre icono y texto
+            
+            // Texto del botón
             Text(
               texto,
               textAlign: TextAlign.center,

@@ -1,8 +1,14 @@
+// PresupuestoMensual es un widget de Flutter que permite gestionar el presupuesto mensual.
+// Este código implementa una interfaz para visualizar, actualizar, eliminar y consultar
+// el historial de presupuestos mensuales, interactuando con una base de datos local
+// a través de GastosDB y utilizando un EventBus para notificaciones.
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:my_cash/componentes/event_bus.dart';
-import 'package:my_cash/database/gastos_db.dart';
+import 'package:MyCash/componentes/event_bus.dart';
+import 'package:MyCash/database/gastos_db.dart';
 
+// Definición del widget PresupuestoMensual como StatefulWidget
 class PresupuestoMensual extends StatefulWidget {
   const PresupuestoMensual({super.key});
 
@@ -10,52 +16,58 @@ class PresupuestoMensual extends StatefulWidget {
   State<PresupuestoMensual> createState() => _PresupuestoMensualState();
 }
 
+// Clase de estado para manejar la lógica y UI del widget
 class _PresupuestoMensualState extends State<PresupuestoMensual> {
-  double _presupuestoActual = 0.0;
-  final TextEditingController _presupuestoController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = true;
+  // Variables de estado
+  double _presupuestoActual = 0.0; // Almacena el presupuesto mensual actual
+  final TextEditingController _presupuestoController = TextEditingController(); // Controlador para el campo de texto
+  final _formKey = GlobalKey<FormState>(); // Clave para validar el formulario
+  bool _isLoading = true; // Indicador de carga inicial
 
+  // Inicialización del estado
   @override
   void initState() {
     super.initState();
-    _cargarPresupuesto();
+    _cargarPresupuesto(); // Carga el presupuesto al iniciar
   }
 
+  // Método para cargar el presupuesto desde la base de datos
   Future<void> _cargarPresupuesto() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = true; // Activa el indicador de carga
     });
 
     try {
       final presupuesto = await GastosDB.instance.obtenerPresupuestoMensual();
       setState(() {
-        _presupuestoActual = presupuesto;
-        _isLoading = false;
+        _presupuestoActual = presupuesto; // Actualiza el presupuesto
+        _isLoading = false; // Desactiva el indicador de carga
       });
     } catch (e) {
       print('Error al cargar presupuesto: $e');
       setState(() {
-        _presupuestoActual = 0.0;
+        _presupuestoActual = 0.0; // Establece 0 en caso de error
         _isLoading = false;
       });
     }
   }
 
+  // Método para guardar un nuevo presupuesto
   Future<void> _guardarPresupuesto() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) { // Valida el formulario
       final nuevoPresupuesto = double.parse(_presupuestoController.text);
 
-      await GastosDB.instance.guardarPresupuestoMensual(nuevoPresupuesto);
+      await GastosDB.instance.guardarPresupuestoMensual(nuevoPresupuesto); // Guarda en la base de datos
 
-      // Notificar actualización
+      // Notifica la actualización a otros componentes
       EventBus().notifyPresupuestoActualizado('mensual');
 
       setState(() {
-        _presupuestoActual = nuevoPresupuesto;
-        _presupuestoController.clear();
+        _presupuestoActual = nuevoPresupuesto; // Actualiza el estado
+        _presupuestoController.clear(); // Limpia el campo de texto
       });
 
+      // Muestra una notificación de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Presupuesto mensual actualizado'),
@@ -69,16 +81,18 @@ class _PresupuestoMensualState extends State<PresupuestoMensual> {
     }
   }
 
+  // Método para eliminar el presupuesto actual
   Future<void> _eliminarPresupuesto() async {
-    await GastosDB.instance.eliminarPresupuestoMensual();
+    await GastosDB.instance.eliminarPresupuestoMensual(); // Elimina de la base de datos
 
-    // Notificar actualización
+    // Notifica la actualización
     EventBus().notifyPresupuestoActualizado('mensual');
 
     setState(() {
-      _presupuestoActual = 0.0;
+      _presupuestoActual = 0.0; // Resetea el presupuesto
     });
 
+    // Muestra una notificación de eliminación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Presupuesto mensual eliminado'),
@@ -91,12 +105,13 @@ class _PresupuestoMensualState extends State<PresupuestoMensual> {
     );
   }
 
+  // Construcción de la interfaz de usuario
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF5F5F5), // Color de fondo
       appBar: AppBar(
-        backgroundColor: const Color(0xFFC8EAD2),
+        backgroundColor: const Color(0xFFC8EAD2), // Color de la barra superior
         elevation: 4,
         shadowColor: Colors.grey.withOpacity(0.3),
         title: const Text(
@@ -110,7 +125,7 @@ class _PresupuestoMensualState extends State<PresupuestoMensual> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context), // Navega hacia atrás
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -119,13 +134,13 @@ class _PresupuestoMensualState extends State<PresupuestoMensual> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator()) // Muestra un indicador de carga
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Tarjeta de resumen
+                  // Tarjeta de resumen del presupuesto
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(

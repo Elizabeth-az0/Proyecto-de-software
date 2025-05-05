@@ -1,13 +1,18 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:my_cash/componentes/event_bus.dart';
-import 'package:my_cash/componentes/home/widgets/transacciones.dart';
-import 'package:my_cash/componentes/home/widgets/appbar.dart';
-import 'package:my_cash/componentes/home/widgets/balance.dart';
-import 'package:my_cash/componentes/home/widgets/opciones.dart';
-import 'package:my_cash/database/gastos_db.dart';
+import 'package:MyCash/componentes/event_bus.dart';
+import 'package:MyCash/componentes/home/widgets/appbar.dart';
+import 'package:MyCash/componentes/home/widgets/balance.dart';
+import 'package:MyCash/componentes/home/widgets/opciones.dart';
+import 'package:MyCash/componentes/home/widgets/transacciones.dart';
+import 'package:MyCash/database/gastos_db.dart';
 
+/// Pantalla principal de la aplicación que muestra:
+/// - Resumen de gastos y presupuestos
+/// - Opciones rápidas
+/// - Lista de transacciones
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -16,45 +21,61 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  // =============================================
+  // 1. ESTADO DEL WIDGET
+  // =============================================
+  
+  /// Total acumulado de todos los gastos
   double _totalGastos = 0.0;
+  
+  /// Presupuesto configurado para el mes actual
   double _presupuestoMensual = 0.0;
+  
+  /// Gastos acumulados en el mes actual
   double _gastosMesActual = 0.0;
+  
+  /// Presupuesto configurado para la semana actual
   double _presupuestoSemanal = 0.0;
+  
+  /// Gastos acumulados en la semana actual
   double _gastosSemanaActual = 0.0;
+  
+  /// Presupuesto configurado para el año actual
   double _presupuestoAnual = 0.0;
+  
+  /// Gastos acumulados en el año actual
   double _gastosAnioActual = 0.0;
 
+  // =============================================
+  // 2. SUSCRIPCIONES A EVENTOS
+  // =============================================
+  
   late StreamSubscription _gastoAgregadoSubscription;
   late StreamSubscription _gastoEliminadoSubscription;
   late StreamSubscription _presupuestoActualizadoSubscription;
+
+  // =============================================
+  // 3. CICLO DE VIDA DEL WIDGET
+  // =============================================
 
   @override
   void initState() {
     super.initState();
     _cargarDatos();
-
-    final eventBus = EventBus();
-    _gastoAgregadoSubscription = eventBus.onGastoAgregado.listen((_) {
-      _cargarDatos();
-    });
-    _gastoEliminadoSubscription = eventBus.onGastoEliminado.listen((_) {
-      _cargarDatos();
-    });
-    _presupuestoActualizadoSubscription =
-        eventBus.onPresupuestoActualizado.listen((event) {
-      // Actualizar solo el presupuesto afectado
-      _cargarPresupuestoEspecifico(event.tipo);
-    });
+    _configurarEventListeners();
   }
 
   @override
   void dispose() {
-    _gastoAgregadoSubscription.cancel();
-    _gastoEliminadoSubscription.cancel();
-    _presupuestoActualizadoSubscription.cancel();
+    _limpiarSubscripciones();
     super.dispose();
   }
 
+  // =============================================
+  // 4. MANEJO DE DATOS
+  // =============================================
+
+  /// Carga todos los datos necesarios para la pantalla
   Future<void> _cargarDatos() async {
     final total = await GastosDB.instance.obtenerTotalGastos();
     final presupuestoMensual =
@@ -80,6 +101,22 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  /// Configura listeners para reaccionar a cambios en los datos
+  void _configurarEventListeners() {
+    final eventBus = EventBus();
+    _gastoAgregadoSubscription = eventBus.onGastoAgregado.listen((_) {
+      _cargarDatos();
+    });
+    _gastoEliminadoSubscription = eventBus.onGastoEliminado.listen((_) {
+      _cargarDatos();
+    });
+    _presupuestoActualizadoSubscription =
+        eventBus.onPresupuestoActualizado.listen((event) {
+      _cargarPresupuestoEspecifico(event.tipo);
+    });
+  }
+
+  /// Carga solo los datos de un tipo específico de presupuesto
   Future<void> _cargarPresupuestoEspecifico(String tipo) async {
     switch (tipo) {
       case 'mensual':
@@ -115,9 +152,22 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  /// Cancela todas las suscripciones a eventos
+  void _limpiarSubscripciones() {
+    _gastoAgregadoSubscription.cancel();
+    _gastoEliminadoSubscription.cancel();
+    _presupuestoActualizadoSubscription.cancel();
+  }
+
+  // =============================================
+  // 5. CONSTRUCCIÓN DE WIDGETS
+  // =============================================
+
+  /// Construye un widget que muestra el progreso de un presupuesto
   Widget _buildPresupuestoProgressWidget(
       String tipo, double presupuesto, double gastosPeriodo) {
-    if (presupuesto <= 0) return SizedBox.shrink();
+    // No mostrar si no hay presupuesto configurado
+    if (presupuesto <= 0) return const SizedBox.shrink();
 
     final porcentaje = (gastosPeriodo / presupuesto).clamp(0.0, 1.0);
     final disponible = presupuesto - gastosPeriodo;
@@ -126,16 +176,15 @@ class _MyHomePageState extends State<MyHomePage> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFD4F4E4),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+          color: const Color(0xFFD4F4E4),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            )
+          ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -197,6 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  /// Construye la sección de presupuestos
   Widget _buildPresupuestos() {
     final widgets = [
       _buildPresupuestoProgressWidget(
@@ -207,6 +257,7 @@ class _MyHomePageState extends State<MyHomePage> {
           'Anual', _presupuestoAnual, _gastosAnioActual),
     ].where((w) => w is! SizedBox).toList();
 
+    // Mostrar mensaje si no hay presupuestos configurados
     if (widgets.isEmpty) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -219,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.black12,
               blurRadius: 8,
               offset: Offset(0, 4),
-            ),
+            )
           ],
         ),
         child: const Center(
@@ -236,6 +287,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Column(children: widgets);
   }
+
+  // =============================================
+  // 6. CONSTRUCCIÓN DE LA INTERFAZ PRINCIPAL
+  // =============================================
 
   @override
   Widget build(BuildContext context) {

@@ -1,30 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:MyCash/database/gastos_db.dart';
-import 'package:MyCash/componentes/event_bus.dart';
 
-/// Widget para agregar un nuevo gasto
+/// Widget para editar un gasto existente
 ///
-/// Permite al usuario ingresar los detalles de un gasto (título, descripción, costo, categoría y fecha)
-/// y guardarlos en la base de datos
-class AgregarGasto extends StatefulWidget {
-  const AgregarGasto({super.key});
+/// Permite modificar los detalles de un gasto (título, descripción, costo, categoría y fecha)
+/// y actualizarlos en la base de datos
+class EditarGasto extends StatefulWidget {
+  final int id; // Identificador del gasto
+  final String titulo; // Título inicial del gasto
+  final String descripcion; // Descripción inicial del gasto
+  final String costo; // Costo inicial del gasto
+  final String categoria; // Categoría inicial del gasto
+  final String fecha; // Fecha inicial del gasto
+
+  const EditarGasto({
+    super.key,
+    required this.id,
+    required this.titulo,
+    required this.descripcion,
+    required this.costo,
+    required this.categoria,
+    required this.fecha,
+  });
 
   @override
-  // ignore: library_private_types_in_public_api
-  _AgregarGastoState createState() => _AgregarGastoState();
+  _EditarGastoState createState() => _EditarGastoState();
 }
 
-/// Clase de estado para manejar la lógica y UI del widget AgregarGasto
-class _AgregarGastoState extends State<AgregarGasto> {
+/// Clase de estado para manejar la lógica y UI del widget EditarGasto
+class _EditarGastoState extends State<EditarGasto> {
   // Controladores para los campos de texto
-  final _tituloController = TextEditingController();
-  final _descripcionController = TextEditingController();
-  final _costoController = TextEditingController();
-  final _fechaController = TextEditingController();
+  late final TextEditingController _tituloController;
+  late final TextEditingController _descripcionController;
+  late final TextEditingController _costoController;
+  late final TextEditingController _fechaController;
   // Variables para categoría y fecha seleccionada
-  String _categoria = 'Comida'; // Categoría por defecto
-  DateTime _fecha = DateTime.now(); // Fecha actual por defecto
+  late String _categoria;
+  late DateTime _fecha;
   // Clave para validar el formulario
   final _formKey = GlobalKey<FormState>();
 
@@ -56,8 +69,13 @@ class _AgregarGastoState extends State<AgregarGasto> {
   @override
   void initState() {
     super.initState();
-    // Inicializa el controlador de fecha con la fecha actual
-    _fechaController.text = DateFormat('yyyy-MM-dd').format(_fecha);
+    // Inicializa los controladores con los valores iniciales
+    _tituloController = TextEditingController(text: widget.titulo);
+    _descripcionController = TextEditingController(text: widget.descripcion);
+    _costoController = TextEditingController(text: widget.costo);
+    _categoria = widget.categoria;
+    _fecha = DateTime.parse(widget.fecha);
+    _fechaController = TextEditingController(text: widget.fecha);
 
     // Agrega listeners para actualizar los contadores de caracteres
     _tituloController.addListener(() {
@@ -99,26 +117,21 @@ class _AgregarGastoState extends State<AgregarGasto> {
     }
   }
 
-  /// Muestra una alerta si el total de gastos supera el límite
-  Future<void> _mostrarAlertaLimiteExcedido() async {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Límite Excedido'),
-          content: const Text(
-              'No puedes agregar este gasto porque el total de gastos no puede superar \$9999.'),
-          actions: [
-            TextButton(
-              child: const Text('Aceptar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        );
-      },
-    );
+  /// Actualiza el gasto en la base de datos
+  Future<void> _actualizarGasto() async {
+    if (_formKey.currentState!.validate()) { // Valida el formulario
+      final gasto = {
+        'id': widget.id,
+        'titulo': _tituloController.text,
+        'descripcion': _descripcionController.text,
+        'costo': double.parse(_costoController.text),
+        'categoria': _categoria,
+        'fecha': _fechaController.text,
+      };
+
+      await GastosDB.instance.actualizarGasto(gasto); // Actualiza en la base de datos
+      Navigator.pop(context, true); // Regresa con resultado exitoso
+    }
   }
 
   // =============================================
@@ -130,7 +143,7 @@ class _AgregarGastoState extends State<AgregarGasto> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Agregar Gasto',
+          'Editar Gasto',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -184,7 +197,7 @@ class _AgregarGastoState extends State<AgregarGasto> {
                   return null;
                 },
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 0),
               // Campo de descripción
               Text(
                 'Descripción',
@@ -332,44 +345,11 @@ class _AgregarGastoState extends State<AgregarGasto> {
                 },
               ),
               const SizedBox(height: 30),
-              // Botón para guardar el gasto
+              // Botón para actualizar el gasto
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      final titulo = _tituloController.text;
-                      final costo = double.parse(_costoController.text);
-
-                      // Verifica si el total de gastos supera el límite
-                      final totalActual =
-                          await GastosDB.instance.obtenerTotalGastos();
-
-                      if (totalActual + costo > 9999) {
-                        await _mostrarAlertaLimiteExcedido();
-                        return;
-                      }
-
-                      // Crea el mapa del gasto
-                      final gasto = {
-                        'titulo': titulo,
-                        'descripcion': _descripcionController.text,
-                        'costo': costo,
-                        'categoria': _categoria,
-                        'fecha': DateFormat('yyyy-MM-dd').format(_fecha),
-                      };
-
-                      // Inserta el gasto en la base de datos
-                      await GastosDB.instance.insertarGasto(gasto);
-
-                      // Notifica a otras pantallas sobre el nuevo gasto
-                      EventBus().notifyGastoAgregado();
-
-                      if (mounted) {
-                        Navigator.pop(context, true); // Regresa con resultado exitoso
-                      }
-                    }
-                  },
+                  onPressed: _actualizarGasto,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF9DD8AF),
                     padding: const EdgeInsets.symmetric(
@@ -377,7 +357,7 @@ class _AgregarGastoState extends State<AgregarGasto> {
                     textStyle: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  child: const Text('GUARDAR'),
+                  child: const Text('ACTUALIZAR'),
                 ),
               ),
             ],

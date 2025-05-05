@@ -1,38 +1,77 @@
-name: my_cash
-description: "A new Flutter project."
+# pubspec.yaml
+# Este archivo es la configuración principal de un proyecto Flutter.
+# Define el nombre, descripción, dependencias, activos y configuraciones específicas del proyecto.
+
+name: MyCash
+# Nombre de la aplicación.
+
+description: "Aplicacion para llevar el control de tus gastos e ingresos"
+# Breve descripción del propósito de la aplicación.
+
 publish_to: 'none'
+# Indica que la aplicación no se publicará en un repositorio de paquetes.
+
 version: 0.1.0
+# Versión inicial de la aplicación (formato: major.minor.patch).
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
+# Especifica la versión del SDK de Dart requerida para el proyecto.
 
 dependencies:
   flutter:
     sdk: flutter
+  # Dependencia principal de Flutter para construir la interfaz de usuario.
+
   flutter_localizations:
     sdk: flutter
-  flutter_launcher_icons: ^0.14.3
-  flutter_svg: ^2.1.0
-  sqflite: ^2.3.0
-  path: ^1.8.3
-  intl: ^0.19.0
-  rxdart: ^0.27.7
-  syncfusion_flutter_charts: 29.1.40
+  # Proporciona soporte para internacionalización y localización.
 
-  
+  flutter_launcher_icons: ^0.14.3
+  # Herramienta para generar íconos de la aplicación para Android e iOS.
+
+  flutter_svg: ^2.1.0
+  # Permite renderizar archivos SVG en la aplicación.
+
+  sqflite: ^2.3.0
+  # Biblioteca para trabajar con bases de datos SQLite en Flutter.
+
+  path: ^1.8.3
+  # Utilidad para manejar rutas de archivos multiplataforma.
+
+  intl: ^0.19.0
+  # Proporciona herramientas para formateo de fechas, números y localización.
+
+  rxdart: ^0.27.7
+  # Extensión de Dart Streams para programación reactiva.
+
+  syncfusion_flutter_charts: ^29.1.40
+  # Biblioteca para crear gráficos y visualizaciones de datos.
+
+  path_provider: ^2.0.11
+  # Proporciona acceso a directorios comunes del sistema de archivos.
+
+
+  open_file: ^3.3.1
+  # Permite abrir archivos con aplicaciones nativas del sistema.
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Framework de pruebas unitarias y de widgets para Flutter.
+
   flutter_lints: ^5.0.0
+  # Conjunto de reglas de linting recomendadas para mantener la calidad del código.
 
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/logo/logop.png"
-
+# Configuración para generar íconos de la aplicación usando flutter_launcher_icons.
 
 flutter:
   uses-material-design: true
+  # Habilita el uso de Material Design para los componentes de la UI.
 
   assets:
     - assets/logo/logo_app.png
@@ -41,10 +80,10 @@ flutter:
     - assets/icons/setting.svg
     - assets/icons/add.svg
     - assets/icons/trash.svg
+  # Lista de activos (imágenes, íconos) incluidos en la aplicación.
 
   fonts:
     - family: MiFuente
       fonts:
         - asset: assets/fonts/regular.ttf
-
-
+  # Define una fuente personalizada para la aplicación.
